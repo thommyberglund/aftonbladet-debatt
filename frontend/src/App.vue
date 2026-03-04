@@ -71,8 +71,8 @@ const fetchDebates = async () => {
   error.value = null
   try {
     // Justera URL:en om din backend körs på en annan port
-    const response = await fetch('http://debatty-api:80/debatt')
-    if (!response.ok) throw new Error('Kunde inte nå backend-tjänsten')
+    const response = await fetch('/api/debatt')
+    if (!response.ok) throw new Error('Kunde inte nåå backend-tjänsten')
     
     const data = await response.json()
     debates.value = data.articles
