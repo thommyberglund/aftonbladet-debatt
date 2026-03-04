@@ -1,0 +1,18 @@
+services:
+  backend:
+    build: ./backend
+    container_name: debatt-api
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./backend:/app
+    environment:
+      - PYTHONUNBUFFERED=1
+
+  frontend:
+    build: ./frontend
+    container_name: debatt-ui
+    ports:
+      - "8080:80"
+    depends_on:
+      - backend
