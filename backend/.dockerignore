@@ -1,2 +1,14 @@
+# Go binärer
+main
+*.exe
+
+# Git & Dokumentation
+.git
+.gitignore
+README.md
+Dockerfile
+
+# Om du har kvar gamla python-filer
 __pycache__
+venv
 .env

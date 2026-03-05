@@ -1,23 +1,13 @@
-# Aftonbladet Debatt - Backend
+# Debatty Backend (Go version)
 
-Python-tjänst som hämtar debattartiklar via RSS och serverar dem som JSON.
-
-## Tekniker
-- FastAPI
-- Feedparser
-- Uvicorn
+Snabb och resurssnål service byggd i Go.
 
 ## Installation (Lokalt)
-1. Installera beroenden:
-   pip install -r requirements.txt
-
-2. Starta servern:
-   uvicorn main:app --reload --port 8000
-
-## API Endpoints
-- GET `/debatt` : Returnerar lista på artiklar.
-- GET `/docs`   : Interaktiv dokumentation (Swagger).
+1. Installera Go (1.21+)
+2. Ladda ner moduler:
+   go mod tidy
+3. Kör:
+   go run main.go
 
 ## Docker
-Bygg image:
-docker build -t debatt-api .
+docker build -t debatt-api-go .

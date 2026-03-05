@@ -1,27 +1,15 @@
-# Använd en lättviktsversion av Python 3.11
-FROM python:3.11-slim
-
-# Sätt arbetskatalogen i containern
+# Steg 1: Bygg binären
+FROM golang:1.21-alpine AS builder
 WORKDIR /app
-
-# Förhindra att Python skriver .pyc-filer och buffrar stdout/stderr
-ENV PYTHONDONTWRITEBYTECODE 1
-ENV PYTHONUNBUFFERED 1
-
-# Installera systemberoenden (behövs ibland för nätverkspaket)
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    gcc \
-    && rm -rf /var/lib/apt/lists/*
-
-# Kopiera requirements först för att utnyttja Dockers cache-lager
-COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
-
-# Kopiera resten av koden till containern
+COPY go.mod go.sum ./
+RUN go mod download
 COPY . .
+RUN CGO_ENABLED=0 GOOS=linux go build -o main .
 
-# Exponera porten som FastAPI körs på
+# Steg 2: Kör binären i en minimal image
+FROM alpine:latest
+RUN apk --no-cache add ca-certificates
+WORKDIR /root/
+COPY --from=builder /app/main .
 EXPOSE 8000
-
-# Starta applikationen med Uvicorn
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
+CMD ["./main"]
