@@ -1,60 +1,35 @@
 <template>
-  <div class="min-h-screen bg-gray-100 py-8 px-4 font-sans">
-    <div class="max-w-4xl mx-auto">
-      
-      <header class="mb-10 text-center">
-        <h1 class="text-4xl font-extrabold text-gray-900 mb-2">Aftonbladet Debatt</h1>
-        <p class="text-gray-600">Senaste inläggen hämtade via REST API</p>
-        <button 
-          @click="fetchDebates" 
-          :disabled="loading"
-          class="mt-6 bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-6 rounded-full transition duration-300 ease-in-out shadow-md disabled:opacity-50"
-        >
-          {{ loading ? 'Hämtar...' : 'Uppdatera flöde' }}
-        </button>
-      </header>
+  <div class="container">
+    <header class="header">
+      <h1>Debatt-kollen</h1>
+      <p>Senaste debatterna från Aftonbladet och Expressen</p>
+      <button @click="fetchAll" :disabled="loading" class="refresh-btn">
+        {{ loading ? 'Uppdaterar...' : 'Uppdatera båda flöden' }}
+      </button>
+    </header>
 
-      <div v-if="loading" class="flex justify-center my-12">
-        <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-      </div>
-
-      <div v-else-if="error" class="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 mb-6 shadow-sm">
-        <p class="font-bold">Ett fel uppstod</p>
-        <p>{{ error }}</p>
-      </div>
-
-      <div v-else class="grid gap-6">
-        <div 
-          v-for="(article, index) in debates" 
-          :key="index" 
-          class="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-300"
-        >
-          <div class="p-6">
-            <div class="flex justify-between items-start mb-2">
-              <h2 class="text-xl font-bold text-gray-800 leading-tight flex-1">
-                {{ article.title }}
-              </h2>
-              <span class="text-xs text-gray-400 ml-4 whitespace-nowrap italic">
-                {{ formatDate(article.published) }}
-              </span>
-            </div>
-            
-            <p class="text-gray-600 mb-4 leading-relaxed" v-html="article.summary"></p>
-            
-            <a 
-              :href="article.link" 
-              target="_blank" 
-              class="inline-block text-blue-600 font-medium hover:text-blue-800 hover:underline transition-colors"
-            >
-              Läs hela debattartikeln →
-            </a>
-          </div>
+    <div class="grid-layout">
+      <section class="column">
+        <h2 class="source-title ab">Aftonbladet Debatt</h2>
+        <div v-if="errorAB" class="error">{{ errorAB }}</div>
+        <div v-for="a in abArticles" :key="a.link" class="card">
+          <h3>{{ a.title }}</h3>
+          <span class="date">{{ formatDate(a.published) }}</span>
+          <p v-html="a.summary"></p>
+          <a :href="a.link" target="_blank">Läs på AB →</a>
         </div>
-      </div>
+      </section>
 
-      <div v-if="!loading && debates.length === 0 && !error" class="text-center text-gray-500 py-12">
-        Inga artiklar hittades.
-      </div>
+      <section class="column">
+        <h2 class="source-title exp">Expressen Debatt</h2>
+        <div v-if="errorExp" class="error">{{ errorExp }}</div>
+        <div v-for="a in expArticles" :key="a.link" class="card">
+          <h3>{{ a.title }}</h3>
+          <span class="date">{{ formatDate(a.published) }}</span>
+          <p v-html="a.summary"></p>
+          <a :href="a.link" target="_blank">Läs på Expressen →</a>
+        </div>
+      </section>
     </div>
   </div>
 </template>
@@ -62,44 +37,63 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 
-const debates = ref([])
+const abArticles = ref([])
+const expArticles = ref([])
 const loading = ref(false)
-const error = ref(null)
+const errorAB = ref(null)
+const errorExp = ref(null)
 
-const fetchDebates = async () => {
+const fetchAll = async () => {
   loading.value = true
-  error.value = null
-  try {
-    // Justera URL:en om din backend körs på en annan port
-    const response = await fetch('/api/debatt')
-    if (!response.ok) throw new Error('Kunde inte nåå backend-tjänsten')
-    
-    const data = await response.json()
-    debates.value = data.articles
-  } catch (err) {
-    error.value = err.message
-    console.error("Fel vid hämtning:", err)
-  } finally {
-    loading.value = false
-  }
+  // Hämta båda parallellt
+  await Promise.all([fetchAB(), fetchExp()])
+  loading.value = false
 }
 
-const formatDate = (dateStr) => {
-  if (dateStr === 'Information saknas') return dateStr
-  // Enkel formatering för att snygga till datumet
+const fetchAB = async () => {
   try {
-    const date = new Date(dateStr)
-    return date.toLocaleDateString('sv-SE', { day: 'numeric', month: 'short' })
-  } catch {
-    return dateStr
-  }
+    const res = await fetch('/api/debatt')
+    const data = await res.json()
+    abArticles.value = data.articles
+  } catch (e) { errorAB.value = "Kunde inte ladda Aftonbladet" }
 }
 
-onMounted(fetchDebates)
+const fetchExp = async () => {
+  try {
+    const res = await fetch('/api/expressen')
+    const data = await res.json()
+    expArticles.value = data.articles
+  } catch (e) { errorExp.value = "Kunde inte ladda Expressen" }
+}
+
+const formatDate = (d) => new Date(d).toLocaleDateString('sv-SE')
+
+onMounted(fetchAll)
 </script>
 
-<style>
-/* Om du inte använder Tailwind CLI kan du lägga till CDN i index.html */
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap');
-body { font-family: 'Inter', sans-serif; }
+<style scoped>
+.container { max-width: 1200px; margin: 0 auto; padding: 20px; font-family: sans-serif; }
+.header { text-align: center; margin-bottom: 40px; }
+.refresh-btn { padding: 10px 25px; border-radius: 20px; border: none; bg-color: #333; color: white; cursor: pointer; }
+
+.grid-layout { 
+  display: grid; 
+  grid-template-columns: 1fr 1fr; 
+  gap: 30px; 
+}
+
+@media (max-width: 768px) {
+  .grid-layout { grid-template-columns: 1fr; }
+}
+
+.column { background: #f9f9f9; padding: 20px; border-radius: 12px; }
+.source-title { padding-bottom: 10px; border-bottom: 4px solid; margin-bottom: 20px; }
+.ab { border-color: #e01010; } /* Röd för AB */
+.exp { border-color: #005696; } /* Blå för Expressen */
+
+.card { background: white; padding: 15px; border-radius: 8px; margin-bottom: 15px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+.card h3 { margin: 0 0 5px 0; font-size: 1.1rem; }
+.date { font-size: 0.8rem; color: #888; }
+.card a { display: inline-block; margin-top: 10px; text-decoration: none; font-weight: bold; color: #007bff; }
+.error { color: red; font-weight: bold; }
 </style>
