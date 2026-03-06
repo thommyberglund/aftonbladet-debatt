@@ -1,0 +1,31 @@
+# Operativsystem
+.DS_Store
+Thumbs.db
+
+# Frontend (Node/Vue)
+node_modules/
+dist/
+dist-ssr/
+*.local
+.eslintcache
+
+# Backend (Go)
+main
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+go.sum  # Valfritt: behåll om du vill låsa versioner exakt (rekommenderas oftast)
+
+# Backend (Python - om du byter tillbaka eller har kvar mappar)
+__pycache__/
+*.py[cod]
+*$py.class
+venv/
+.env
+
+# Docker & Logs
+.docker
+*.log
+docker-compose.override.yml
