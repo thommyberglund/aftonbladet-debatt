@@ -185,3 +185,4 @@ onMounted(fetchAll)
 .exp { background: #dbeafe; color: #1e40af; }
 .dn { background: #f1f5f9; color: #0f172a; border: 1px solid #cbd5e1; }
 .dark-theme .dn { background: #334155; color: #f8fafc; border-color: #475569; }
+</style>
