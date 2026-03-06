@@ -15,7 +15,6 @@ type Article struct {
 	Summary   string `json:"summary"`
 }
 
-// Hjälpfunktion för att hämta och parsa RSS
 func fetchFeed(url string) ([]Article, error) {
 	fp := gofeed.NewParser()
 	fp.UserAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
@@ -37,23 +36,32 @@ func fetchFeed(url string) ([]Article, error) {
 	return articles, nil
 }
 
+// Handlers för respektive källa
 func getAftonbladet(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Access-Control-Allow-Origin", "*")
-	w.Header().Set("Content-Type", "application/json")
-
+	setupResponse(&w, r)
 	articles, err := fetchFeed("https://rss.aftonbladet.se/rss2/small/pages/sections/debatt/")
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-	json.NewEncoder(w).Encode(map[string]interface{}{"articles": articles})
+	handleResult(w, articles, err)
 }
 
 func getExpressen(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Access-Control-Allow-Origin", "*")
-	w.Header().Set("Content-Type", "application/json")
-
+	setupResponse(&w, r)
 	articles, err := fetchFeed("https://feeds.expressen.se/debatt/")
+	handleResult(w, articles, err)
+}
+
+func getDN(w http.ResponseWriter, r *http.Request) {
+	setupResponse(&w, r)
+	articles, err := fetchFeed("https://www.dn.se/debatt/rss/")
+	handleResult(w, articles, err)
+}
+
+// Hjälpfunktioner för HTTP-svar
+func setupResponse(w *http.ResponseWriter, req *http.Request) {
+	(*w).Header().Set("Access-Control-Allow-Origin", "*")
+	(*w).Header().Set("Content-Type", "application/json")
+}
+
+func handleResult(w http.ResponseWriter, articles []Article, err error) {
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -62,8 +70,9 @@ func getExpressen(w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
-	http.HandleFunc("/debatt", getAftonbladet)   // Behåller gammalt namn för kompatibilitet
+	http.HandleFunc("/debatt", getAftonbladet)
 	http.HandleFunc("/expressen", getExpressen)
+	http.HandleFunc("/dn", getDN)
 
 	log.Println("Go Backend körs på port 8000...")
 	log.Fatal(http.ListenAndServe(":8000", nil))
