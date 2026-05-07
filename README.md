@@ -1,13 +1,13 @@
 # Debatty: Aftonbladet Debatt Tracker 📰
 
-Ett fullstack-projekt som samlar in och visualiserar debattartiklar från Aftonbladet i realtid. Projektet består av en Python-backend (FastAPI) och en modern Vue.js-frontend.
+Ett fullstack-projekt som samlar in och visualiserar debattartiklar från Aftonbladet i realtid. Projektet består av en Go-backend och en modern Vue.js-frontend.
 
 ## 🏗 Arkitektur
 
 Projektet är containeriserat med Docker och använder följande struktur:
 
 - **Frontend**: Vue 3 (Vite) serverad via Nginx.
-- **Backend**: FastAPI som skrapar RSS-flöden med Feedparser.
+- **Backend**: Som skrapar RSS-flöden med Feedparser.
 - **Proxy**: Designad för att köras bakom Caddy eller Nginx för HTTPS-terminering.
 
 [Image of a full stack web architecture diagram showing frontend, backend api, and a reverse proxy]
